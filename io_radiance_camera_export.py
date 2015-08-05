@@ -89,10 +89,13 @@ def write_cameras(context, filepath, frame_start, frame_end, only_selected=False
         lens = repr(getattr(obj_data, 'lens'))
         vh = degrees(float(repr(getattr(obj_data, 'angle_x'))))
         vv = degrees(float(repr(getattr(obj_data, 'angle_y'))))
-        vs = repr(getattr(obj_data, 'shift_x'))
-        vl = repr(getattr(obj_data, 'shift_y'))
-        vo = repr(getattr(obj_data, 'clip_start'))
-        va = repr(getattr(obj_data, 'clip_end'))
+        vs = float(repr(getattr(obj_data, 'shift_x')))
+        vl = float(repr(getattr(obj_data, 'shift_y')))
+        vo = float(repr(getattr(obj_data, 'clip_start')))
+        va = float(repr(getattr(obj_data, 'clip_end')))
+        if va>=1000000.0:
+        	va = 0
+        	vo = 0
         vtype = repr(getattr(obj_data, 'type')) # [‘PERSP’, ‘ORTHO’, ‘PANO’]
         vt = 'v'
         if vtype == 'ORTHO':
