@@ -11,14 +11,11 @@ def name_compat(name):
 
 def mesh2radgrid(filepath):
     basename, ext = os.path.splitext(filepath)
-    name = bpy.path.clean_name(obj.name)
-    fn = os.path.join(basename, name)
-    context_name = [fn, '', '', '.pnt']  # Base name, scene name, frame number, extension
-    scene = bpy.context.scene
     
+
+    scene = bpy.context.scene    
     objects = bpy.context.selected_objects
     
-    filepath = ''.join(context_name)
     
     def veckey3d(v):
         return round(v.x, 6), round(v.y, 6), round(v.z, 6)
@@ -26,9 +23,6 @@ def mesh2radgrid(filepath):
     def veckey2d(v):
         return round(v[0], 6), round(v[1], 6)
 
-    print(filepath)    
-    file = open(filepath, "w", encoding="utf8", newline="\n")
-    fw = file.write
     
     # Initialize totals, these are updated each object
     totverts = totuvco = totno = 1
@@ -41,6 +35,14 @@ def mesh2radgrid(filepath):
 
     # Get all meshes
     for ob_main in objects:
+
+        name = bpy.path.clean_name(ob_main.name)
+        fn = os.path.join(basename, name)
+        context_name = [fn, '', '', '.pnt']  # Base name, scene name, frame number, extension   
+        filepath = ''.join(context_name)
+        print(filepath)    
+        file = open(filepath, "w", encoding="utf8", newline="\n")
+        fw = file.write
         
         # ignore dupli children
         if ob_main.parent and ob_main.parent.dupli_type in {'VERTS', 'FACES'}:
