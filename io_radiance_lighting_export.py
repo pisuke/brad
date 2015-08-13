@@ -19,12 +19,12 @@
 # <pep8 compliant>
 
 bl_info = {
-    "name": "Export Radiance View Files",
-    "description": "Export Radiance View Files",
+    "name": "Export Radiance Lighting Files",
+    "description": "Export Radiance Lighting Files",
     "author": "Francesco Anselmo",
     "version": (0, 1),
     "blender": (2, 57, 0),
-    "location": "File > Export > Export Radiance View Files (.vf)",
+    "location": "File > Export > Export Radiance Lighting Files (.lum)",
     "warning": "",
     "wiki_url":"",
     "category": "Import-Export",
@@ -37,85 +37,74 @@ from mathutils import Vector
 from os.path import splitext
 from math import degrees
 
-def write_cameras(context, filepath, frame_start, frame_end, only_selected=False):
+def write_lighting(context, filepath, frame_start, frame_end, only_selected=False):
 
-    data_attrs = (
-        'lens',
-        'shift_x',
-        'shift_y',
-        'dof_distance',
-        'clip_start',
-        'clip_end',
-        'draw_size',
-        )
-
-    obj_attrs = (
-        'hide_render',
-        )
-    
     fn = splitext(filepath)[0]
 
     scene = bpy.context.scene
 
-    cameras = []
+    lighting = []
 
     for obj in scene.objects:
         if only_selected and not obj.select:
             continue
-        if obj.type != 'CAMERA':
+        if obj.type != 'LAMP':
             continue
 
-        cameras.append((obj, obj.data))
+        lighting.append((obj, obj.data))
 
     frame_range = range(frame_start, frame_end + 1)
 
+    lumname = fn +'.lum'
+    fn = lumname
+    f = open(fn,'w')
 
-    for obj, obj_data in cameras:
-        camfn = '%s_%s.vf' % (fn,obj.name)
-        cam = obj
-        vp = obj.location
-        vu = cam.matrix_world.to_quaternion() * Vector((0.0, 1.0, 0.0))
-        vd = cam.matrix_world.to_quaternion() * Vector((0.0, 0.0, -1.0))
-        vpx, vpy, vpz = vp
-        vux, vuy, vuz = vu
-        vdx, vdy, vdz = vd
-        lens = repr(getattr(obj_data, 'lens'))
-        vh = degrees(float(repr(getattr(obj_data, 'angle_x'))))
-        vv = degrees(float(repr(getattr(obj_data, 'angle_y'))))
-        vs = float(repr(getattr(obj_data, 'shift_x')))
-        vl = float(repr(getattr(obj_data, 'shift_y')))
-        vo = float(repr(getattr(obj_data, 'clip_start')))
-        va = float(repr(getattr(obj_data, 'clip_end')))
-        if va>=1000000.0:
-        	va = 0
-        	vo = 0
-        vtype = repr(getattr(obj_data, 'type')) # [‘PERSP’, ‘ORTHO’, ‘PANO’]
-        vt = 'v'
-        if vtype == 'ORTHO':
-        	vt = 'l'
-        if vtype == 'PANO':
-        	vt = 'c'
-        if vh>160.0 or vv>160.0:
-        	vt = 'a'
-        	vh = 180.0
-        	vv = 180.0
-        print(camfn, lens, vtype, vt, vp, vpx, vpy, vpz, vd, vdx, vdy, vdz, vu, vux, vuy, vuz, vh, vv, vo, va, vs, vl)
-        fw = open(camfn, 'w').write
-        fw('rvu -vt%s -vp %s %s %s -vd %s %s %s -vu %s %s %s -vh %s -vv %s -vo %s -va %s -vs %s -vl %s \n' % (vt, vpx, vpy, vpz, vdx, vdy, vdz, vux, vuy, vuz, vh, vv, vo, va, vs, vl))
+
+    for obj, obj_data in lighting:
+    
+        if obj.type=='LAMP':
+            #name = bpy.path.clean_name(obj.name)
+            name = obj.name
+            #print(obj.type)
+            #print(name)
+            #print(dir(obj.data))
+            ies = obj_data.name
+            #print(obj.location)
+            x,y,z = obj.location
+            #print(x,y,z)
+            rx,ry,rz = obj.matrix_world.to_euler()
+            #print(rx, ry, rz)
+            rx = degrees(rx)
+            ry = degrees(ry)
+            rz = degrees(rz)
+            #print(rx, ry, rz)
+            #print(dir(obj.matrix_world))
+            xform = '!xform -rx %s -ry %s -rz %s -t %s %s %s %s.rad # %s\n' % (rx, ry, rz, x, y, z, ies, name)
+            print(xform)
+            f.write(xform)
+            
+
+        #obj.select = False
+
+   
+    f.close()
+    print("written:", fn)
+    
+
         
 from bpy.props import StringProperty, IntProperty, BoolProperty
 from bpy_extras.io_utils import ExportHelper
 
 
-class CameraExporter(bpy.types.Operator, ExportHelper):
-    """Export Blender Cameras to Radiance Views"""
+class LightingExporter(bpy.types.Operator, ExportHelper):
+    """Export Blender Lamps to Radiance Lighting files"""
     
-    bl_idname = "export.radiance_views"
+    bl_idname = "export.radiance_lighting"
 
-    bl_label = "Export Radiance View Files"
+    bl_label = "Export Radiance Lighting Files"
 
-    filename_ext = ".vf"
-    filter_glob = StringProperty(default="*.vf", options={'HIDDEN'})
+    filename_ext = ".lum"
+    filter_glob = StringProperty(default="*.lum", options={'HIDDEN'})
 
     frame_start = IntProperty(name="Start Frame",
             description="Start frame for export",
@@ -128,7 +117,7 @@ class CameraExporter(bpy.types.Operator, ExportHelper):
             
 
     def execute(self, context):
-        write_cameras(context, self.filepath, self.frame_start, self.frame_start, self.only_selected)
+        write_lighting(context, self.filepath, self.frame_start, self.frame_start, self.only_selected)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -143,7 +132,7 @@ class CameraExporter(bpy.types.Operator, ExportHelper):
 def menu_export(self, context):
     import os
     default_path = os.path.splitext(bpy.data.filepath)[0] + ".py"
-    self.layout.operator(CameraExporter.bl_idname, text="Radiance View Files (.vf)").filepath = default_path
+    self.layout.operator(LightingExporter.bl_idname, text="Radiance Lighting Files (.lum)").filepath = default_path
 
 
 def register():

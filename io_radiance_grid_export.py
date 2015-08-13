@@ -81,7 +81,7 @@ def writeVtkPolydata(filename, verts, faces):
         vtkfile.write(line + "\n")
     vtkfile.close()
 
-def write_cameras(context, filepath, frame_start, frame_end, only_selected=False):
+def write_grids(context, filepath, frame_start, frame_end, only_selected=False):
 
     data_attrs = (
         'lens',
@@ -101,57 +101,53 @@ def write_cameras(context, filepath, frame_start, frame_end, only_selected=False
 
     scene = bpy.context.scene
 
-    cameras = []
+    grids = []
 
     for obj in scene.objects:
         if only_selected and not obj.select:
             continue
-        if obj.type != 'CAMERA':
+        if obj.type != 'MESH':
             continue
 
-        cameras.append((obj, obj.data))
+        grids.append((obj, obj.data))
 
     frame_range = range(frame_start, frame_end + 1)
 
 
-    for obj, obj_data in cameras:
-        camfn = '%s_%s.vf' % (fn,obj.name)
-        cam = obj
-        vp = obj.location
-        vu = cam.matrix_world.to_quaternion() * Vector((0.0, 1.0, 0.0))
-        vd = cam.matrix_world.to_quaternion() * Vector((0.0, 0.0, -1.0))
-        vpx, vpy, vpz = vp
-        vux, vuy, vuz = vu
-        vdx, vdy, vdz = vd
-        lens = repr(getattr(obj_data, 'lens'))
-        vh = degrees(float(repr(getattr(obj_data, 'angle_x'))))
-        vv = degrees(float(repr(getattr(obj_data, 'angle_y'))))
-        vs = float(repr(getattr(obj_data, 'shift_x')))
-        vl = float(repr(getattr(obj_data, 'shift_y')))
-        vo = float(repr(getattr(obj_data, 'clip_start')))
-        va = float(repr(getattr(obj_data, 'clip_end')))
-        if va>=1000000.0:
-        	va = 0
-        	vo = 0
-        vtype = repr(getattr(obj_data, 'type')) # [‘PERSP’, ‘ORTHO’, ‘PANO’]
-        vt = 'v'
-        if vtype == 'ORTHO':
-        	vt = 'l'
-        if vtype == 'PANO':
-        	vt = 'c'
-        if vh>160.0 or vv>160.0:
-        	vt = 'a'
-        	vh = 180.0
-        	vv = 180.0
-        print(camfn, lens, vtype, vt, vp, vpx, vpy, vpz, vd, vdx, vdy, vdz, vu, vux, vuy, vuz, vh, vv, vo, va, vs, vl)
-        fw = open(camfn, 'w').write
-        fw('rvu -vt%s -vp %s %s %s -vd %s %s %s -vu %s %s %s -vh %s -vv %s -vo %s -va %s -vs %s -vl %s \n' % (vt, vpx, vpy, vpz, vdx, vdy, vdz, vux, vuy, vuz, vh, vv, vo, va, vs, vl))
+    for obj, obj_data in grids:
+        gfn = '%s_%s' % (fn,obj.name)
+        grid = obj
+        name = obj.name
+
+        if name[:len("Grid")] == "Grid" or name[:len("Grid")] == "grid":
+            fn = gfn # file name
+            fnpnt = fn+".pnt"
+            fnvtk = fn+".vtk"
+            f = open(fnpnt,'w') # open file
+            if obj.type=='MESH':
+                od = obj.data # get object data if it is a mesh
+                # export vertices and normals
+                me = obj.to_mesh(bpy.context.scene, True, 'PREVIEW')
+                #me = od
+                me.transform(obj.matrix_world) # use world coordinates rather than local coordinate
+                for v in me.vertices:
+                    x,y,z = v.co
+                    nx, ny, nz = v.normal
+                    print(x,y,z,nx,ny,nz)
+                    f.write('%s %s %s %s %s %s\n' % (x,y,z,nx,ny,nz))
+                f.close()    
+                #bpy.ops.export_scene.obj(filepath=fn + ".obj", use_selection=True, axis_forward='Y', axis_up='Z')
+                ## Can be used for multiple formats
+                # bpy.ops.export_scene.x3d(filepath=fn + ".x3d", use_selection=True)
+                #obj.select = False
+                print("grid file written:", fn)
+                writeVtkPolydata(fnvtk,me.vertices,me.polygons)
         
 from bpy.props import StringProperty, IntProperty, BoolProperty
 from bpy_extras.io_utils import ExportHelper
 
 
-class CameraExporter(bpy.types.Operator, ExportHelper):
+class GridExporter(bpy.types.Operator, ExportHelper):
     """Export Radiance Calculation Grids"""
     
     bl_idname = "export.radiance_grids"
@@ -166,13 +162,13 @@ class CameraExporter(bpy.types.Operator, ExportHelper):
             default=1, min=1, max=300000)
     frame_end = IntProperty(name="End Frame",
             description="End frame for export",
-            default=250, min=1, max=300000)
+            default=1, min=1, max=300000)
     only_selected = BoolProperty(name="Only Selected",
             default=True)
             
 
     def execute(self, context):
-        write_cameras(context, self.filepath, self.frame_start, self.frame_start, self.only_selected)
+        write_grids(context, self.filepath, self.frame_start, self.frame_start, self.only_selected)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -187,7 +183,7 @@ class CameraExporter(bpy.types.Operator, ExportHelper):
 def menu_export(self, context):
     import os
     default_path = os.path.splitext(bpy.data.filepath)[0] + ".py"
-    self.layout.operator(CameraExporter.bl_idname, text="Radiance Calculation Grids (.pnt)").filepath = default_path
+    self.layout.operator(GridExporter.bl_idname, text="Radiance Calculation Grids (.pnt)").filepath = default_path
 
 
 def register():
