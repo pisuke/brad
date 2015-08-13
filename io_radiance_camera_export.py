@@ -21,7 +21,7 @@
 bl_info = {
     "name": "Export Radiance View Files",
     "description": "Export Radiance View Files",
-    "author": "Francesco Anselmo",
+    "author": "Francesco Anselmo francesco.anselmo@arup.com",
     "version": (0, 1),
     "blender": (2, 57, 0),
     "location": "File > Export > Export Radiance View Files (.vf)",
