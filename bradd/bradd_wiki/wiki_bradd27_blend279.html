@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>BRADD</title>
+</head>
+<body>
+
+<section>
+
+<h2><b>BRADD WIKI</b></h2>
+<o>last update June 22, 2019</o>
+<p>
+BRADD - Blender to Radiance Direct - a flavour/variant/permutation/derivative of <a href="https://github.com/pisuke/brad">BRAD</a> exporter, featuring exporting geometry directly from <a href="http://www.blender.org">Blender</a> to <a href="http://www.radiance-online.org/">Radiance</a> (physically based rendering engine) .rad format, including converting Blender ordinary render materials to closest Radiance material types, and converting Sphere, Cylinder, Cone to sphere, cylinder, cone (w/wo ring endcaps), Circle to ring, and Text to mixtext (with void backgorund), and automatically generating shell scripts.
+</p>
+<p>
+Related:
+<ul>
+  <li><a href="https://github.com/pisuke/brad">BRAD</a>: exports from blender to an intermediate .obj format, and then to radiance .rad via radiance obj2rad conversion program</li>
+  <li>LiVi: part of <a href="http://arts.brighton.ac.uk/projects/vi-suite">VI-Suite</a> installs radiance material panels, uses advanced radiance capabilities</li>
+</ul>
+</p>
+<p>
+Goal for BRADD: something that's easy for those familiar with Blender to give Radiance rendering a quick try.
+<ol>
+  <li>install Radiance</li>
+  <li>install BRADD exporter in Blender > User Preferences > Add Ons > Install Add On from File and pick our .py exporter </li>
+  <li>File Export > Export BRADD Radiance Folder</li>
+  <li>in the output folder, run batch files run1 run2 run3 run4</li>
+  <li>open the scene.bmp image to see what got rendered</li>
+</ol>
+<p>
+Download BRADD addon for Blender: <a href="../io_export_radiance_bradd27_blend279.py">io_export_radiance_bradd27_blend279.py</a></p>
+</p>
+<p>
+Download example blender scenes: <a href="https://github.com/pisuke/brad/tree/master/bradd/bradd_examples/">bradd_examples/</a></p>
+</p>
+<table  border="1"  >
+  <tbody>
+    <tr>
+      <td width="50%"><b>Blender</b></td>
+      <td><b>Radiance</b></td>
+    </tr>
+
+    <tr>
+      <td><img src="analytical_blender.jpg"/></td>
+      <td><img src="analytical_pview.jpg"/></td>
+    </tr>
+    <tr>
+      <td><img src="grid_blender.jpg"/></td>
+      <td><img src="grid_pview.jpg"/></td>
+    </tr>
+    <tr>
+      <td><img src="text_blender.jpg"/></td>
+      <td><img src="text_pview.jpg"/></td>
+    </tr>
+    <tr>
+      <td><img src="material_blender.jpg"/></td>
+      <td><img src="material_pview.jpg"/></td>
+    </tr>
+    <tr>
+      <td><img src="texture_blender.jpg"/></td>
+      <td><img src="texture_pview.jpg"/></td>
+    </tr>
+    <tr>
+      <td><img src="light_blender.jpg"/></td>
+      <td><img src="light_pview.jpg"/></td>
+    </tr>
+    <tr>
+      <td><img src="sky_blender.jpg"/></td>
+      <td><img src="sky_pview.jpg"/></td>
+    </tr>
+  </tbody>
+</table>
+</p>
+
+<p>
+<h2><b>Conversion details for BRADD method:</b></h2>
+<p> </p>
+<p></p>
+<table  border="1"  >
+  <tbody>
+    <tr>
+      <td width="50%"><b>Blender</b></td>
+      <td><b>Radiance</b></td>
+    </tr>
+
+    <tr>
+      <td><b>Geometry:</b></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>Cone</td>
+      <td>cone</td>
+    </tr>
+    <tr>
+      <td>Cylinder</td>
+      <td>cylinder</td>
+    </tr>
+    <tr>
+      <td>Sphere (UV, ICO)</td>
+      <td>sphere</td>
+    </tr>
+    <tr>
+      <td>Circle</td>
+      <td>ring</td>
+    </tr>
+    <tr>
+      <td>- end caps for above</td>
+      <td>ring</td>
+    </tr>
+    <tr>
+      <td>- radius, depth for above</td>
+      <td>radius, depth for above</td>
+    </tr>
+    <tr>
+      <td>artist edited Cone, Cylinder, Sphere, Circle</td>
+      <td>(not handled properly, please rename data block to 'Mesh.0xx' so exported as polygons)</td>
+    </tr>
+    <tr>
+      <td>Grid</td>
+      <td>polgon (triangles)</td>
+    </tr>
+    <tr>
+      <td>Text</td>
+      <td>mixtext on rectangle polygon; background void</td>
+    </tr>
+    <tr>
+      <td>Plane, Cube, Mesh ...</td>
+      <td>polygon (separate .rad file for each Mesh)</td>
+    </tr>
+
+    <tr>
+      <td><b>Objects and Transforms:</b></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>Object</td>
+      <td>!xform in scene.rad</td>
+    </tr>
+    <tr>
+      <td>-translation</td>
+      <td>-tx -ty -tz</td>
+    </tr>
+    <tr>
+      <td>-rotation</td>
+      <td>-rx -ry -rz</td>
+    </tr>
+    <tr>
+      <td>-scale</td>
+      <td>-s SX only applied, assumes iso-tropic (if an-isotropic scale, please Object > Apply > Scale before export</td>
+    </tr>
+    <tr>
+      <td>nested hierarchy</td>
+      <td>transform combined</td>
+    </tr>
+    <tr>
+      <td>instanced object</td>
+      <td>/geom .rad written once, used with many !xform in scene.rad</td>
+    </tr>
+
+    <tr>
+      <td><b>Materials:</b></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>Material</td>
+      <td>material written once in materials.mat, used in many /geom .rad</td>
+    </tr>
+    <tr>
+      <td>Texture</td>
+      <td>only ImageTexture, and only for Plane and Grid, image exported to images/*.hdr, default OBJECT mapping </td>
+    </tr>
+    <tr>
+      <td>UV Texture coords</td>
+      <td>(xyz,uv) bary2bary/perspective converted to closest similarty transform</td>
+    </tr>
+
+    <tr>
+      <td><b>Lights:</b></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>Point</td>
+      <td>light + .33 sphere</td>
+    </tr>
+    <tr>
+      <td>Spot</td>
+      <td>spotlight + .33 ring</td>
+    </tr>
+    <tr>
+      <td>Area</td>
+      <td>arealight + rectangle polygon</td>
+    </tr>
+    <tr>
+      <td>(Hemi)</td>
+      <td>(x not handled)</td>
+    </tr>
+    <tr>
+      <td>Sun</td>
+      <td>standard sun via light</td>
+    </tr>
+    <tr>
+      <td>- Sky (Sun option)</td>
+      <td>standard sky via skyfunc</td>
+    </tr>
+    <tr>
+      <td>(x not handled)</td>
+      <td>(illum)</td>
+    </tr>
+
+    <tr>
+      <td><b>Viewpoint:</b></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>Camera</td>
+      <td>Camera.vf</td>
+    </tr>
+
+    <tr>
+      <td><b>Commandline:</b></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>run1.bat/.sh</td>
+      <td>oconv</td>
+    </tr>
+    <tr>
+      <td>run2.bat/.sh</td>
+      <td>rvu</td>
+    </tr>
+    <tr>
+      <td>run3.bat/.sh</td>
+      <td>pview</td>
+    </tr>
+    <tr>
+      <td>run4.bat/.sh</td>
+      <td>ra_bmp</td>
+    </tr>
+    <tr>
+      <td>(x not handled)</td>
+      <td>rad .rif</td>
+    </tr>
+  </tbody>
+</table>
+</p>
+
+
+</body>
+</html>
