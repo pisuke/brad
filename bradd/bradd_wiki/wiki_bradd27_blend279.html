@@ -10,17 +10,17 @@
 <h2><b>BRADD WIKI</b></h2>
 <o>last update June 22, 2019</o>
 <p>
-BRADD - Blender to Radiance Direct - a flavour/variant/permutation/derivative of <a href="https://github.com/pisuke/brad">BRAD</a> exporter, featuring exporting geometry directly from <a href="http://www.blender.org">Blender</a> to <a href="http://www.radiance-online.org/">Radiance</a> (precision illuminance renderer) .rad format, including converting Blender ordinary render materials to closest Radiance material types, and converting Sphere, Cylinder, Cone to sphere, cylinder, cone (w/wo ring endcaps), Circle to ring, and Text to mixtext (with void backgorund), and automatically generating shell scripts.
+BRADD - Blender to Radiance Direct - a flavour/variant/permutation/derivative of <a href="https://github.com/pisuke/brad">BRAD</a> exporter, featuring exporting geometry directly from <a href="http://www.blender.org">Blender</a> to <a href="http://www.radiance-online.org/">Radiance</a> (physically based rendering engine) .rad format, including converting Blender ordinary render materials to closest Radiance material types, and converting Sphere, Cylinder, Cone to sphere, cylinder, cone (w/wo ring endcaps), Circle to ring, and Text to mixtext (with void backgorund), and automatically generating shell scripts.
 </p>
 <p>
-Related: 
+Related:
 <ul>
   <li><a href="https://github.com/pisuke/brad">BRAD</a>: exports from blender to an intermediate .obj format, and then to radiance .rad via radiance obj2rad conversion program</li>
   <li>LiVi: part of <a href="http://arts.brighton.ac.uk/projects/vi-suite">VI-Suite</a> installs radiance material panels, uses advanced radiance capabilities</li>
 </ul>
 </p>
 <p>
-Goal for BRADD: something that's easy for those familiar with Blender to give Radiance rendering a quick try. 
+Goal for BRADD: something that's easy for those familiar with Blender to give Radiance rendering a quick try.
 <ol>
   <li>install Radiance</li>
   <li>install BRADD exporter in Blender > User Preferences > Add Ons > Install Add On from File and pick our .py exporter </li>
@@ -150,7 +150,7 @@ Download example blender scenes: <a href="https://github.com/pisuke/brad/tree/ma
       <td>-s SX only applied, assumes iso-tropic (if an-isotropic scale, please Object > Apply > Scale before export</td>
     </tr>
     <tr>
-      <td>nested heirarchy</td>
+      <td>nested hierarchy</td>
       <td>transform combined</td>
     </tr>
     <tr>
@@ -174,7 +174,7 @@ Download example blender scenes: <a href="https://github.com/pisuke/brad/tree/ma
       <td>UV Texture coords</td>
       <td>(xyz,uv) bary2bary/perspective converted to closest similarty transform</td>
     </tr>
-    
+
     <tr>
       <td><b>Lights:</b></td>
       <td></td>
